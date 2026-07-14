@@ -1,0 +1,1653 @@
+<style>
+/* styles.css — עיצוב RTL, mobile-first, תמיכה במצב כהה/בהיר */
+
+:root {
+  --bg: #f3f4f6;
+  --card: #ffffff;
+  --text: #111827;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --primary: #4f46e5;
+  --primary-dark: #4338ca;
+  --income: #22c55e;
+  --expense: #ef4444;
+  --warn: #f59e0b;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --nav-h: 62px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --border: #334155;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* כותרת עליונה */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--primary);
+  color: #fff;
+  padding: 14px 16px;
+  padding-top: calc(14px + env(safe-area-inset-top));
+  box-shadow: var(--shadow);
+}
+.month-title { font-size: 1.15rem; font-weight: 700; }
+.icon-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #fff;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.icon-btn:active { background: rgba(255, 255, 255, 0.35); }
+
+main { padding: 14px; max-width: 560px; margin: 0 auto; }
+.hidden { display: none !important; }
+
+/* כרטיסי סטטיסטיקה */
+.cards-row { display: flex; gap: 12px; margin-bottom: 12px; }
+.stat-card {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: var(--shadow);
+  flex: 1;
+}
+.stat-label { font-size: 0.82rem; color: var(--muted); margin-bottom: 4px; }
+.stat-value { font-size: 1.35rem; font-weight: 800; }
+.stat-card.income .stat-value { color: var(--income); }
+.stat-card.expense .stat-value { color: var(--expense); }
+.stat-card.balance { text-align: center; }
+.stat-card.balance .stat-value { color: var(--income); font-size: 1.7rem; }
+.stat-card.balance.negative .stat-value { color: var(--expense); }
+.stat-sub { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 20px 4px 10px;
+}
+
+/* פירוק קטגוריות */
+.category-list, .tx-list { display: flex; flex-direction: column; gap: 8px; }
+.cat-row, .tx-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card);
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: var(--shadow);
+}
+.cat-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+.cat-name { flex: 1; font-weight: 600; font-size: 0.95rem; }
+.cat-bar {
+  flex: 1.4;
+  height: 8px;
+  background: var(--border);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.cat-bar > span { display: block; height: 100%; border-radius: 5px; }
+.cat-amount { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* תנועות */
+.tx-main { flex: 1; display: flex; flex-direction: column; }
+.tx-cat { font-weight: 600; font-size: 0.95rem; }
+.tx-date { font-size: 0.78rem; color: var(--muted); }
+.tx-amount { font-weight: 800; font-variant-numeric: tabular-nums; }
+.tx-amount.income { color: var(--income); }
+.tx-amount.expense { color: var(--expense); }
+.tx-del { background: none; border: none; font-size: 1rem; cursor: pointer; opacity: 0.6; }
+.tx-filter { display: flex; gap: 8px; margin-bottom: 12px; }
+.chip {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 7px 16px;
+  border-radius: 20px;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+.chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+.empty, .budget-hint {
+  text-align: center;
+  color: var(--muted);
+  padding: 20px;
+  background: var(--card);
+  border-radius: 12px;
+  font-size: 0.9rem;
+}
+
+/* פסי תקציב */
+.progress-card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: var(--shadow);
+  margin-bottom: 10px;
+  border-inline-start: 4px solid var(--income);
+}
+.progress-card.level-warn { border-inline-start-color: var(--warn); }
+.progress-card.level-over { border-inline-start-color: var(--expense); }
+.progress-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.progress-track { height: 10px; background: var(--border); border-radius: 6px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--income); border-radius: 6px; transition: width 0.3s; }
+.level-warn .progress-fill { background: var(--warn); }
+.level-over .progress-fill { background: var(--expense); }
+.progress-pct { font-size: 0.78rem; color: var(--muted); margin-top: 4px; text-align: end; }
+
+/* גרפים */
+.chart-box {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.chart-svg { width: 100%; max-width: 340px; height: auto; }
+.chart-svg.donut { max-width: 200px; }
+.chart-label { font-size: 10px; fill: var(--muted); }
+.donut-total { font-size: 15px; font-weight: 800; fill: var(--text); }
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  justify-content: center;
+  margin-top: 12px;
+  font-size: 0.82rem;
+}
+.legend-item { display: inline-flex; align-items: center; gap: 5px; }
+.legend-dot { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+.chart-empty { color: var(--muted); padding: 30px; font-size: 0.9rem; }
+
+/* טפסים */
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 5px; }
+.field input, .field select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--text);
+  font-size: 1rem;
+  font-family: inherit;
+}
+.field input:focus, .field select:focus { outline: 2px solid var(--primary); border-color: var(--primary); }
+
+/* תקציב לפי קטגוריה */
+.cat-budget-list { display: flex; flex-direction: column; gap: 8px; }
+.cat-budget-row {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--card); border-radius: 12px; padding: 8px 12px; box-shadow: var(--shadow);
+}
+.cat-budget-row input { width: 110px; padding: 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
+
+/* הגדרות */
+.settings-cats { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.settings-cat-row {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--card); border-radius: 12px; padding: 8px 12px; box-shadow: var(--shadow);
+}
+.mini-btn { background: none; border: none; font-size: 1rem; cursor: pointer; padding: 4px; }
+.drive-box { background: var(--card); border-radius: 14px; padding: 14px; box-shadow: var(--shadow); }
+.drive-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.drive-status { margin-top: 10px; font-size: 0.88rem; color: var(--muted); }
+.drive-status.ok { color: var(--income); font-weight: 700; }
+.hint { font-size: 0.78rem; color: var(--muted); margin: 8px 0 0; }
+
+/* כפתורים */
+.btn-primary, .btn-secondary {
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:active { background: var(--primary-dark); }
+.btn-secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+
+/* כפתור צף */
+.fab {
+  position: fixed;
+  bottom: calc(var(--nav-h) + 16px + env(safe-area-inset-bottom));
+  inset-inline-start: 20px;
+  width: 58px; height: 58px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  font-size: 2rem;
+  line-height: 1;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.5);
+  cursor: pointer;
+  z-index: 30;
+}
+.fab:active { transform: scale(0.94); }
+
+/* ניווט תחתון */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: calc(var(--nav-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  display: flex;
+  z-index: 25;
+}
+.nav-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-family: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+}
+.nav-btn span { font-size: 1.3rem; }
+.nav-btn.active { color: var(--primary); }
+
+/* חלונות מודאליים */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 40;
+}
+.modal-card {
+  background: var(--card);
+  width: 100%;
+  max-width: 480px;
+  border-radius: 18px 18px 0 0;
+  padding: 20px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.22s ease;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-card h2 { margin: 0 0 16px; font-size: 1.15rem; }
+.modal-actions { display: flex; gap: 10px; margin-top: 8px; }
+.modal-actions button { flex: 1; }
+
+.type-toggle { display: flex; gap: 8px; margin-bottom: 16px; }
+.type-btn {
+  flex: 1;
+  padding: 11px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 10px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+.type-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* טוסט */
+.toast {
+  position: fixed;
+  bottom: calc(var(--nav-h) + 24px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  background: #111827;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 24px;
+  font-size: 0.9rem;
+  z-index: 50;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  max-width: 90%;
+  text-align: center;
+}
+
+</style>
+<div dir="rtl" lang="he" class="app-root">
+
+  <!-- כותרת עליונה עם ניווט חודשים -->
+  <header class="topbar">
+    <button id="prevMonth" class="icon-btn" aria-label="חודש קודם">‹</button>
+    <div class="month-title" id="monthTitle">—</div>
+    <button id="nextMonth" class="icon-btn" aria-label="חודש הבא">›</button>
+  </header>
+
+  <main id="main">
+    <!-- טאב: סיכום -->
+    <section class="tab" id="tab-summary">
+      <div class="cards-row">
+        <div class="stat-card income">
+          <div class="stat-label">הכנסות</div>
+          <div class="stat-value" id="sumIncome">₪0</div>
+        </div>
+        <div class="stat-card expense">
+          <div class="stat-label">הוצאות</div>
+          <div class="stat-value" id="sumExpense">₪0</div>
+        </div>
+      </div>
+      <div class="stat-card balance" id="balanceCard">
+        <div class="stat-label">מאזן החודש</div>
+        <div class="stat-value" id="sumBalance">₪0</div>
+        <div class="stat-sub" id="cumBalance"></div>
+      </div>
+
+      <div id="budgetSummary"></div>
+
+      <h2 class="section-title">הוצאות לפי קטגוריה</h2>
+      <div id="categoryList" class="category-list"></div>
+    </section>
+
+    <!-- טאב: תנועות -->
+    <section class="tab hidden" id="tab-tx">
+      <div class="tx-filter">
+        <button class="chip active" data-filter="all">הכל</button>
+        <button class="chip" data-filter="expense">הוצאות</button>
+        <button class="chip" data-filter="income">הכנסות</button>
+      </div>
+      <div id="txList" class="tx-list"></div>
+    </section>
+
+    <!-- טאב: גרפים -->
+    <section class="tab hidden" id="tab-charts">
+      <h2 class="section-title">הכנסות מול הוצאות (6 חודשים)</h2>
+      <div id="chartMonthly" class="chart-box"></div>
+      <h2 class="section-title">פילוח הוצאות החודש</h2>
+      <div id="chartCategory" class="chart-box"></div>
+    </section>
+
+    <!-- טאב: תקציב -->
+    <section class="tab hidden" id="tab-budget">
+      <div class="field">
+        <label for="monthlyBudget">תקציב חודשי כולל (₪)</label>
+        <input type="number" id="monthlyBudget" inputmode="decimal" placeholder="למשל 8000" />
+      </div>
+      <h2 class="section-title">תקציב לפי קטגוריה</h2>
+      <div id="categoryBudgets" class="cat-budget-list"></div>
+    </section>
+
+    <!-- טאב: הגדרות -->
+    <section class="tab hidden" id="tab-settings">
+      <h2 class="section-title">קטגוריות</h2>
+      <div id="settingsCategories" class="settings-cats"></div>
+      <button class="btn-secondary" id="addCategoryBtn">➕ הוסף קטגוריה</button>
+
+      <h2 class="section-title">סנכרון Google Drive</h2>
+      <div class="drive-box">
+        <div class="field">
+          <label for="clientIdInput">Google OAuth Client ID</label>
+          <input type="text" id="clientIdInput" placeholder="xxxxx.apps.googleusercontent.com" />
+        </div>
+        <div class="drive-actions">
+          <button class="btn-secondary" id="saveClientIdBtn">שמור מזהה</button>
+          <button class="btn-primary" id="syncBtn">🔄 סנכרן עכשיו</button>
+        </div>
+        <div class="drive-status" id="driveStatus">לא מחובר</div>
+        <p class="hint">הסנכרון אופציונלי. ראה הוראות הקמה ב-README.</p>
+      </div>
+
+      <h2 class="section-title">גיבוי מקומי</h2>
+      <div class="drive-actions">
+        <button class="btn-secondary" id="exportBtn">⬇️ ייצוא קובץ</button>
+        <button class="btn-secondary" id="importBtn">⬆️ ייבוא קובץ</button>
+        <input type="file" id="importFile" accept="application/json" hidden />
+      </div>
+
+      <h2 class="section-title">התראות</h2>
+      <button class="btn-secondary" id="notifyBtn">🔔 אפשר התראות דפדפן</button>
+    </section>
+  </main>
+
+  <!-- כפתור הוספה צף -->
+  <button class="fab" id="fab" aria-label="הוסף תנועה">+</button>
+
+  <!-- ניווט תחתון -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-tab="summary"><span>📊</span>סיכום</button>
+    <button class="nav-btn" data-tab="tx"><span>📝</span>תנועות</button>
+    <button class="nav-btn" data-tab="charts"><span>📈</span>גרפים</button>
+    <button class="nav-btn" data-tab="budget"><span>🎯</span>תקציב</button>
+    <button class="nav-btn" data-tab="settings"><span>⚙️</span>הגדרות</button>
+  </nav>
+
+  <!-- חלון הוספת/עריכת תנועה -->
+  <div class="modal hidden" id="txModal">
+    <div class="modal-card">
+      <h2 id="txModalTitle">הוספת תנועה</h2>
+      <div class="type-toggle">
+        <button type="button" class="type-btn active" data-type="expense">הוצאה</button>
+        <button type="button" class="type-btn" data-type="income">הכנסה</button>
+      </div>
+      <div class="field">
+        <label for="txAmount">סכום (₪)</label>
+        <input type="number" id="txAmount" inputmode="decimal" placeholder="0" />
+      </div>
+      <div class="field" id="txCategoryField">
+        <label for="txCategory">קטגוריה</label>
+        <select id="txCategory"></select>
+      </div>
+      <div class="field">
+        <label for="txDate">תאריך</label>
+        <input type="date" id="txDate" />
+      </div>
+      <div class="field">
+        <label for="txNote">הערה (אופציונלי)</label>
+        <input type="text" id="txNote" placeholder="תיאור" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="txCancel">ביטול</button>
+        <button class="btn-primary" id="txSave">שמירה</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- חלון קטגוריה -->
+  <div class="modal hidden" id="catModal">
+    <div class="modal-card">
+      <h2 id="catModalTitle">קטגוריה</h2>
+      <div class="field">
+        <label for="catName">שם</label>
+        <input type="text" id="catName" placeholder="שם הקטגוריה" />
+      </div>
+      <div class="field">
+        <label for="catIcon">אייקון (אימוג'י)</label>
+        <input type="text" id="catIcon" maxlength="2" placeholder="📦" />
+      </div>
+      <div class="field">
+        <label for="catColor">צבע</label>
+        <input type="color" id="catColor" value="#6b7280" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="catCancel">ביטול</button>
+        <button class="btn-primary" id="catSave">שמירה</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- הודעת טוסט -->
+  <div id="toast" class="toast hidden"></div>
+
+</div>
+<script>
+// model.js — מודל נתונים וחישובים טהורים (ללא תלות ב-DOM)
+// כל הפונקציות כאן ניתנות לבדיקה בקלות ואינן נוגעות ב-UI.
+
+const DEFAULT_CATEGORIES = [
+  { id: "food", name: "אוכל", icon: "🍽️", color: "#ef4444" },
+  { id: "transport", name: "דלק/תחבורה", icon: "⛽", color: "#f59e0b" },
+  { id: "shopping", name: "קניות", icon: "🛍️", color: "#8b5cf6" },
+  { id: "bills", name: "חשבונות", icon: "🧾", color: "#3b82f6" },
+  { id: "fun", name: "בילויים", icon: "🎉", color: "#ec4899" },
+  { id: "health", name: "בריאות", icon: "🩺", color: "#10b981" },
+  { id: "other", name: "אחר", icon: "📦", color: "#6b7280" },
+];
+
+const INCOME_CATEGORY = { id: "income", name: "הכנסה", icon: "💰", color: "#22c55e" };
+
+// מזהה חודש בפורמט "YYYY-MM"
+function monthKey(dateStr) {
+  return String(dateStr).slice(0, 7);
+}
+
+function currentMonthKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate()
+  ).padStart(2, "0")}`;
+}
+
+// שם חודש קריא בעברית, למשל "יולי 2026"
+const HE_MONTHS = [
+  "ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני",
+  "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר",
+];
+function monthLabel(mKey) {
+  const [y, m] = mKey.split("-");
+  return `${HE_MONTHS[parseInt(m, 10) - 1]} ${y}`;
+}
+
+// מעבר חודש: delta של +1 / -1 על מפתח "YYYY-MM"
+function shiftMonth(mKey, delta) {
+  const [y, m] = mKey.split("-").map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function fmtCurrency(n) {
+  const val = Number(n) || 0;
+  return "₪" + val.toLocaleString("he-IL", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+}
+
+// --- חישובים על מצב האפליקציה ---
+
+// כל התנועות של חודש נתון
+function txForMonth(state, mKey) {
+  return state.transactions.filter((t) => monthKey(t.date) === mKey);
+}
+
+// סך הוצאות בחודש
+function totalExpenses(state, mKey) {
+  return txForMonth(state, mKey)
+    .filter((t) => t.type === "expense")
+    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+}
+
+// סך הכנסות בחודש
+function totalIncome(state, mKey) {
+  return txForMonth(state, mKey)
+    .filter((t) => t.type === "income")
+    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+}
+
+// מאזן חודשי = הכנסות − הוצאות
+function monthlyBalance(state, mKey) {
+  return totalIncome(state, mKey) - totalExpenses(state, mKey);
+}
+
+// מאזן מצטבר עד וכולל החודש הנבחר
+function cumulativeBalance(state, mKey) {
+  return state.transactions
+    .filter((t) => monthKey(t.date) <= mKey)
+    .reduce(
+      (sum, t) => sum + (t.type === "income" ? 1 : -1) * (Number(t.amount) || 0),
+      0
+    );
+}
+
+// הוצאות מקובצות לפי קטגוריה בחודש נתון -> [{categoryId, total}]
+function expensesByCategory(state, mKey) {
+  const map = {};
+  txForMonth(state, mKey)
+    .filter((t) => t.type === "expense")
+    .forEach((t) => {
+      map[t.category] = (map[t.category] || 0) + (Number(t.amount) || 0);
+    });
+  return Object.entries(map)
+    .map(([categoryId, total]) => ({ categoryId, total }))
+    .sort((a, b) => b.total - a.total);
+}
+
+// רשימת החודשים שיש בהם תנועות, ממויין (למגמה/השוואה)
+function monthsWithData(state) {
+  const set = new Set(state.transactions.map((t) => monthKey(t.date)));
+  return Array.from(set).sort();
+}
+
+// סדרת ההוצאות/הכנסות ל-N החודשים האחרונים עד mKey (כולל) -> [{month, expenses, income}]
+function monthlySeries(state, mKey, count = 6) {
+  const series = [];
+  let cur = mKey;
+  for (let i = 0; i < count; i++) {
+    series.unshift({
+      month: cur,
+      expenses: totalExpenses(state, cur),
+      income: totalIncome(state, cur),
+    });
+    cur = shiftMonth(cur, -1);
+  }
+  return series;
+}
+
+// מציאת קטגוריה לפי id (כולל קטגוריית הכנסה)
+function findCategory(state, id) {
+  if (id === INCOME_CATEGORY.id) return INCOME_CATEGORY;
+  return (
+    state.categories.find((c) => c.id === id) || {
+      id,
+      name: id || "ללא קטגוריה",
+      icon: "❔",
+      color: "#9ca3af",
+    }
+  );
+}
+
+// מצב תקציב חודשי כולל -> {budget, spent, ratio, level}
+// level: "ok" | "warn" (>=90%) | "over" (>=100%)
+function totalBudgetStatus(state, mKey) {
+  const budget = state.budgets && state.budgets.monthlyTotal;
+  const spent = totalExpenses(state, mKey);
+  if (!budget || budget <= 0) return { budget: null, spent, ratio: 0, level: "none" };
+  const ratio = spent / budget;
+  const level = ratio >= 1 ? "over" : ratio >= 0.9 ? "warn" : "ok";
+  return { budget, spent, ratio, level };
+}
+
+// מצב תקציב פר-קטגוריה -> [{categoryId, budget, spent, ratio, level}]
+function categoryBudgetStatuses(state, mKey) {
+  const per = (state.budgets && state.budgets.perCategory) || {};
+  const spentMap = {};
+  expensesByCategory(state, mKey).forEach((e) => (spentMap[e.categoryId] = e.total));
+  return Object.entries(per)
+    .filter(([, b]) => Number(b) > 0)
+    .map(([categoryId, budget]) => {
+      const spent = spentMap[categoryId] || 0;
+      const ratio = spent / budget;
+      const level = ratio >= 1 ? "over" : ratio >= 0.9 ? "warn" : "ok";
+      return { categoryId, budget: Number(budget), spent, ratio, level };
+    })
+    .sort((a, b) => b.ratio - a.ratio);
+}
+
+// חשיפה גלובלית (ללא מודולים כדי שיעבוד ישירות מ-file/Pages)
+window.BudgetModel = {
+  DEFAULT_CATEGORIES,
+  INCOME_CATEGORY,
+  monthKey,
+  currentMonthKey,
+  todayStr,
+  monthLabel,
+  shiftMonth,
+  fmtCurrency,
+  txForMonth,
+  totalExpenses,
+  totalIncome,
+  monthlyBalance,
+  cumulativeBalance,
+  expensesByCategory,
+  monthsWithData,
+  monthlySeries,
+  findCategory,
+  totalBudgetStatus,
+  categoryBudgetStatuses,
+};
+
+// store.js — שמירה/טעינה מ-localStorage. מקור אמת יחיד לנתונים.
+
+const STORAGE_KEY = "budget_state_v1";
+const CLIENT_ID_KEY = "budget_google_client_id";
+
+function defaultState() {
+  return {
+    version: 1,
+    updatedAt: Date.now(),
+    transactions: [],
+    categories: JSON.parse(JSON.stringify(window.BudgetModel.DEFAULT_CATEGORIES)),
+    budgets: { monthlyTotal: null, perCategory: {} },
+  };
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    // מיזוג הגנתי מול ברירת מחדל כדי לשרוד גרסאות ישנות
+    const base = defaultState();
+    return {
+      ...base,
+      ...parsed,
+      budgets: { ...base.budgets, ...(parsed.budgets || {}) },
+      categories:
+        Array.isArray(parsed.categories) && parsed.categories.length
+          ? parsed.categories
+          : base.categories,
+      transactions: Array.isArray(parsed.transactions) ? parsed.transactions : [],
+    };
+  } catch (e) {
+    console.error("loadState failed, using default", e);
+    return defaultState();
+  }
+}
+
+function saveState(state) {
+  state.updatedAt = Date.now();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  return state;
+}
+
+// יצירת מזהה ייחודי לתנועה
+function newId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+// --- פעולות על תנועות ---
+function addTransaction(state, { type, amount, category, date, note }) {
+  state.transactions.push({
+    id: newId(),
+    type,
+    amount: Number(amount),
+    category: type === "income" ? window.BudgetModel.INCOME_CATEGORY.id : category,
+    date,
+    note: note || "",
+  });
+  return saveState(state);
+}
+
+function updateTransaction(state, id, patch) {
+  const t = state.transactions.find((x) => x.id === id);
+  if (t) Object.assign(t, patch, { amount: Number(patch.amount ?? t.amount) });
+  return saveState(state);
+}
+
+function deleteTransaction(state, id) {
+  state.transactions = state.transactions.filter((t) => t.id !== id);
+  return saveState(state);
+}
+
+// --- קטגוריות ---
+function addCategory(state, { name, icon, color }) {
+  const id = "cat_" + newId();
+  state.categories.push({ id, name, icon: icon || "📦", color: color || "#6b7280" });
+  return saveState(state);
+}
+
+function updateCategory(state, id, patch) {
+  const c = state.categories.find((x) => x.id === id);
+  if (c) Object.assign(c, patch);
+  return saveState(state);
+}
+
+function deleteCategory(state, id) {
+  state.categories = state.categories.filter((c) => c.id !== id);
+  if (state.budgets.perCategory) delete state.budgets.perCategory[id];
+  return saveState(state);
+}
+
+// --- תקציבים ---
+function setMonthlyBudget(state, amount) {
+  state.budgets.monthlyTotal = amount === "" || amount == null ? null : Number(amount);
+  return saveState(state);
+}
+
+function setCategoryBudget(state, categoryId, amount) {
+  if (!state.budgets.perCategory) state.budgets.perCategory = {};
+  if (amount === "" || amount == null || Number(amount) <= 0) {
+    delete state.budgets.perCategory[categoryId];
+  } else {
+    state.budgets.perCategory[categoryId] = Number(amount);
+  }
+  return saveState(state);
+}
+
+// --- ייצוא / ייבוא (גיבוי ידני) ---
+function exportJSON(state) {
+  return JSON.stringify(state, null, 2);
+}
+
+function importJSON(text) {
+  const parsed = JSON.parse(text);
+  if (!parsed || !Array.isArray(parsed.transactions)) {
+    throw new Error("קובץ לא תקין");
+  }
+  const base = defaultState();
+  const merged = {
+    ...base,
+    ...parsed,
+    budgets: { ...base.budgets, ...(parsed.budgets || {}) },
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+  return merged;
+}
+
+// מיזוג last-write-wins בין מצב מקומי למצב מ-Drive
+function mergeStates(localState, remoteState) {
+  if (!remoteState) return localState;
+  if (!localState) return remoteState;
+  return (remoteState.updatedAt || 0) > (localState.updatedAt || 0)
+    ? remoteState
+    : localState;
+}
+
+// --- מזהה Google Client לסנכרון (נשמר מקומית בלבד) ---
+function getClientId() {
+  return localStorage.getItem(CLIENT_ID_KEY) || "";
+}
+function setClientId(id) {
+  if (id) localStorage.setItem(CLIENT_ID_KEY, id.trim());
+  else localStorage.removeItem(CLIENT_ID_KEY);
+}
+
+window.BudgetStore = {
+  STORAGE_KEY,
+  defaultState,
+  loadState,
+  saveState,
+  addTransaction,
+  updateTransaction,
+  deleteTransaction,
+  addCategory,
+  updateCategory,
+  deleteCategory,
+  setMonthlyBudget,
+  setCategoryBudget,
+  exportJSON,
+  importJSON,
+  mergeStates,
+  getClientId,
+  setClientId,
+};
+
+// charts.js — גרפי SVG ידניים, ללא תלות בספריות חיצוניות (עובד אופליין).
+
+const SVGNS = "http://www.w3.org/2000/svg";
+const M = () => window.BudgetModel;
+
+function el(tag, attrs = {}, text) {
+  const node = document.createElementNS(SVGNS, tag);
+  for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+  if (text != null) node.textContent = text;
+  return node;
+}
+
+// גרף עמודות: הכנסות מול הוצאות לאורך חודשים.
+// series: [{month, expenses, income}]
+function renderMonthlyBars(container, series) {
+  container.innerHTML = "";
+  if (!series.length) {
+    container.appendChild(emptyMsg("אין נתונים להצגה"));
+    return;
+  }
+  const W = 340, H = 200, padB = 34, padT = 12, padX = 8;
+  const max = Math.max(1, ...series.map((s) => Math.max(s.expenses, s.income)));
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, class: "chart-svg", role: "img" });
+
+  const groupW = (W - padX * 2) / series.length;
+  const barW = Math.min(18, groupW / 3);
+  const chartH = H - padB - padT;
+
+  series.forEach((s, i) => {
+    const gx = padX + i * groupW + groupW / 2;
+    const incH = (s.income / max) * chartH;
+    const expH = (s.expenses / max) * chartH;
+    // הכנסה (ירוק) משמאל, הוצאה (אדום) מימין
+    svg.appendChild(
+      el("rect", {
+        x: gx - barW - 1, y: H - padB - incH, width: barW, height: Math.max(0, incH),
+        rx: 3, fill: "#22c55e",
+      })
+    );
+    svg.appendChild(
+      el("rect", {
+        x: gx + 1, y: H - padB - expH, width: barW, height: Math.max(0, expH),
+        rx: 3, fill: "#ef4444",
+      })
+    );
+    // תווית חודש (מספר חודש בלבד לחיסכון במקום)
+    const mm = s.month.split("-")[1];
+    svg.appendChild(
+      el("text", { x: gx, y: H - padB + 16, "text-anchor": "middle", class: "chart-label" }, mm)
+    );
+  });
+
+  container.appendChild(svg);
+  container.appendChild(legend([
+    { color: "#22c55e", label: "הכנסות" },
+    { color: "#ef4444", label: "הוצאות" },
+  ]));
+}
+
+// גרף טבעת (donut) לפילוח הוצאות לפי קטגוריה.
+// items: [{categoryId, total}], state לצורך שמות/צבעים
+function renderCategoryDonut(container, items, state) {
+  container.innerHTML = "";
+  const total = items.reduce((s, i) => s + i.total, 0);
+  if (!total) {
+    container.appendChild(emptyMsg("אין הוצאות בחודש זה"));
+    return;
+  }
+  const size = 180, r = 70, cx = size / 2, cy = size / 2, stroke = 26;
+  const svg = el("svg", { viewBox: `0 0 ${size} ${size}`, class: "chart-svg donut", role: "img" });
+  const circ = 2 * Math.PI * r;
+  let offset = 0;
+
+  items.forEach((item) => {
+    const cat = M().findCategory(state, item.categoryId);
+    const frac = item.total / total;
+    const seg = el("circle", {
+      cx, cy, r,
+      fill: "none",
+      stroke: cat.color,
+      "stroke-width": stroke,
+      "stroke-dasharray": `${frac * circ} ${circ}`,
+      "stroke-dashoffset": -offset,
+      transform: `rotate(-90 ${cx} ${cy})`,
+    });
+    svg.appendChild(seg);
+    offset += frac * circ;
+  });
+
+  // סכום במרכז
+  svg.appendChild(
+    el("text", { x: cx, y: cy - 2, "text-anchor": "middle", class: "donut-total" },
+      M().fmtCurrency(total))
+  );
+  svg.appendChild(
+    el("text", { x: cx, y: cy + 16, "text-anchor": "middle", class: "chart-label" }, "סה\"כ הוצאות")
+  );
+
+  container.appendChild(svg);
+  container.appendChild(
+    legend(items.map((i) => {
+      const c = M().findCategory(state, i.categoryId);
+      const pct = Math.round((i.total / total) * 100);
+      return { color: c.color, label: `${c.icon} ${c.name} · ${pct}%` };
+    }))
+  );
+}
+
+function legend(entries) {
+  const wrap = document.createElement("div");
+  wrap.className = "chart-legend";
+  entries.forEach((e) => {
+    const item = document.createElement("span");
+    item.className = "legend-item";
+    const dot = document.createElement("span");
+    dot.className = "legend-dot";
+    dot.style.background = e.color;
+    item.appendChild(dot);
+    item.appendChild(document.createTextNode(e.label));
+    wrap.appendChild(item);
+  });
+  return wrap;
+}
+
+function emptyMsg(text) {
+  const d = document.createElement("div");
+  d.className = "chart-empty";
+  d.textContent = text;
+  return d;
+}
+
+window.BudgetCharts = { renderMonthlyBars, renderCategoryDonut };
+
+// drive.js — סנכרון וגיבוי ל-Google Drive.
+// שימוש ב-Google Identity Services (GIS) לקבלת access token, ו-Drive REST API
+// לשמירת קובץ יחיד בתוך appDataFolder (תיקייה מוסתרת ייעודית לאפליקציה).
+//
+// חשוב: האפליקציה עובדת במלואה גם ללא חיבור. Drive הוא גיבוי/סנכרון בין מכשירים בלבד.
+// המשתמש מזין Client ID משלו (Google Cloud). אין secrets בקוד.
+
+const SCOPE = "https://www.googleapis.com/auth/drive.appdata";
+const FILE_NAME = "budget-data.json";
+const GIS_SRC = "https://accounts.google.com/gsi/client";
+
+let tokenClient = null;
+let accessToken = null;
+let gisLoaded = false;
+
+// טעינת סקריפט GIS פעם אחת (דורש רשת).
+function loadGis() {
+  if (gisLoaded) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector(`script[src="${GIS_SRC}"]`);
+    if (existing) {
+      gisLoaded = true;
+      return resolve();
+    }
+    const s = document.createElement("script");
+    s.src = GIS_SRC;
+    s.async = true;
+    s.defer = true;
+    s.onload = () => {
+      gisLoaded = true;
+      resolve();
+    };
+    s.onerror = () => reject(new Error("טעינת Google נכשלה (אין חיבור לרשת?)"));
+    document.head.appendChild(s);
+  });
+}
+
+function isConfigured() {
+  return !!window.BudgetStore.getClientId();
+}
+
+function isSignedIn() {
+  return !!accessToken;
+}
+
+// התחברות: מבקש הרשאה ומקבל access token.
+async function signIn() {
+  const clientId = window.BudgetStore.getClientId();
+  if (!clientId) throw new Error("חסר Google Client ID. הזן אותו בהגדרות.");
+  await loadGis();
+
+  return new Promise((resolve, reject) => {
+    try {
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: SCOPE,
+        callback: (resp) => {
+          if (resp.error) return reject(new Error(resp.error));
+          accessToken = resp.access_token;
+          resolve(accessToken);
+        },
+      });
+      tokenClient.requestAccessToken({ prompt: "" });
+    } catch (e) {
+      reject(e);
+    }
+  });
+}
+
+function signOut() {
+  if (accessToken && window.google && google.accounts) {
+    try {
+      google.accounts.oauth2.revoke(accessToken, () => {});
+    } catch (_) {}
+  }
+  accessToken = null;
+}
+
+function authHeaders() {
+  return { Authorization: `Bearer ${accessToken}` };
+}
+
+// מציאת מזהה הקובץ ב-appDataFolder (אם קיים).
+async function findFileId() {
+  const url =
+    "https://www.googleapis.com/drive/v3/files?spaces=appDataFolder" +
+    `&q=${encodeURIComponent(`name='${FILE_NAME}'`)}&fields=files(id,name,modifiedTime)`;
+  const res = await fetch(url, { headers: authHeaders() });
+  if (!res.ok) throw new Error("שגיאה בגישה ל-Drive: " + res.status);
+  const data = await res.json();
+  return data.files && data.files.length ? data.files[0].id : null;
+}
+
+// הורדת תוכן הקובץ מ-Drive -> object או null.
+async function download() {
+  const id = await findFileId();
+  if (!id) return null;
+  const res = await fetch(
+    `https://www.googleapis.com/drive/v3/files/${id}?alt=media`,
+    { headers: authHeaders() }
+  );
+  if (!res.ok) throw new Error("הורדת הקובץ נכשלה: " + res.status);
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch (_) {
+    return null;
+  }
+}
+
+// העלאת מצב ל-Drive (יצירה או עדכון). שימוש ב-multipart upload.
+async function upload(state) {
+  const existingId = await findFileId();
+  const metadata = existingId
+    ? { name: FILE_NAME }
+    : { name: FILE_NAME, parents: ["appDataFolder"] };
+
+  const boundary = "-------budget" + Date.now();
+  const body =
+    `--${boundary}\r\n` +
+    "Content-Type: application/json; charset=UTF-8\r\n\r\n" +
+    JSON.stringify(metadata) +
+    `\r\n--${boundary}\r\n` +
+    "Content-Type: application/json\r\n\r\n" +
+    JSON.stringify(state) +
+    `\r\n--${boundary}--`;
+
+  const method = existingId ? "PATCH" : "POST";
+  const url = existingId
+    ? `https://www.googleapis.com/upload/drive/v3/files/${existingId}?uploadType=multipart`
+    : "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
+
+  const res = await fetch(url, {
+    method,
+    headers: {
+      ...authHeaders(),
+      "Content-Type": `multipart/related; boundary=${boundary}`,
+    },
+    body,
+  });
+  if (!res.ok) throw new Error("שמירה ל-Drive נכשלה: " + res.status);
+  return res.json();
+}
+
+// סנכרון מלא: מיזוג last-write-wins בין מקומי ל-Drive, ושמירת התוצאה בשני הצדדים.
+// מקבל localState, מחזיר את המצב הממוזג (שגם נשמר מקומית).
+async function sync(localState) {
+  if (!isSignedIn()) await signIn();
+  const remote = await download();
+  const merged = window.BudgetStore.mergeStates(localState, remote);
+  // שמירה מקומית
+  localStorage.setItem(window.BudgetStore.STORAGE_KEY, JSON.stringify(merged));
+  // כתיבה ל-Drive רק אם המקומי חדש יותר או שאין עדיין קובץ מרוחק
+  if (!remote || (merged.updatedAt || 0) >= (remote.updatedAt || 0)) {
+    await upload(merged);
+  }
+  return merged;
+}
+
+window.BudgetDrive = {
+  isConfigured,
+  isSignedIn,
+  signIn,
+  signOut,
+  sync,
+  download,
+  upload,
+};
+
+// app.js — קישור בין ה-UI, המודל, האחסון, הגרפים והסנכרון.
+(function () {
+  const Model = window.BudgetModel;
+  const Store = window.BudgetStore;
+  const Charts = window.BudgetCharts;
+  const Drive = window.BudgetDrive;
+
+  let state = Store.loadState();
+  let currentMonth = Model.currentMonthKey();
+  let txFilter = "all";
+  let editingTxId = null;
+  let editingCatId = null;
+  let modalType = "expense";
+
+  const $ = (id) => document.getElementById(id);
+
+  // ---------- כלי עזר ----------
+  function toast(msg) {
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.remove("hidden");
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.add("hidden"), 2600);
+  }
+
+  function persistAndRender() {
+    Store.saveState(state);
+    renderAll();
+  }
+
+  // ---------- רינדור ----------
+  function renderAll() {
+    $("monthTitle").textContent = Model.monthLabel(currentMonth);
+    renderSummary();
+    renderBudgetSummary();
+    renderCategoryBreakdown();
+    renderTxList();
+    renderCharts();
+    renderBudgetTab();
+    renderSettingsCategories();
+    renderDriveStatus();
+  }
+
+  function renderSummary() {
+    const inc = Model.totalIncome(state, currentMonth);
+    const exp = Model.totalExpenses(state, currentMonth);
+    const bal = inc - exp;
+    $("sumIncome").textContent = Model.fmtCurrency(inc);
+    $("sumExpense").textContent = Model.fmtCurrency(exp);
+    $("sumBalance").textContent = Model.fmtCurrency(bal);
+    const card = $("balanceCard");
+    card.classList.toggle("negative", bal < 0);
+    const cum = Model.cumulativeBalance(state, currentMonth);
+    $("cumBalance").textContent = "מאזן מצטבר: " + Model.fmtCurrency(cum);
+  }
+
+  function renderBudgetSummary() {
+    const box = $("budgetSummary");
+    box.innerHTML = "";
+    const st = Model.totalBudgetStatus(state, currentMonth);
+    if (st.budget == null) {
+      box.innerHTML =
+        '<div class="budget-hint">לא הוגדר תקציב חודשי. הגדר אותו בטאב "תקציב".</div>';
+      return;
+    }
+    box.appendChild(progressCard("תקציב חודשי", st));
+    // תקציבי קטגוריה שחצו/מתקרבים
+    Model.categoryBudgetStatuses(state, currentMonth)
+      .filter((c) => c.level !== "ok")
+      .forEach((c) => {
+        const cat = Model.findCategory(state, c.categoryId);
+        box.appendChild(progressCard(`${cat.icon} ${cat.name}`, c));
+      });
+  }
+
+  function progressCard(title, st) {
+    const wrap = document.createElement("div");
+    wrap.className = "progress-card level-" + st.level;
+    const pct = Math.min(100, Math.round(st.ratio * 100));
+    wrap.innerHTML = `
+      <div class="progress-head">
+        <span>${title}</span>
+        <span>${Model.fmtCurrency(st.spent)} / ${Model.fmtCurrency(st.budget)}</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="progress-pct">${Math.round(st.ratio * 100)}%</div>`;
+    return wrap;
+  }
+
+  function renderCategoryBreakdown() {
+    const list = $("categoryList");
+    list.innerHTML = "";
+    const items = Model.expensesByCategory(state, currentMonth);
+    if (!items.length) {
+      list.innerHTML = '<div class="empty">אין הוצאות בחודש זה</div>';
+      return;
+    }
+    const total = items.reduce((s, i) => s + i.total, 0);
+    items.forEach((item) => {
+      const cat = Model.findCategory(state, item.categoryId);
+      const pct = Math.round((item.total / total) * 100);
+      const row = document.createElement("div");
+      row.className = "cat-row";
+      row.innerHTML = `
+        <span class="cat-icon" style="background:${cat.color}22;color:${cat.color}">${cat.icon}</span>
+        <span class="cat-name">${cat.name}</span>
+        <span class="cat-bar"><span style="width:${pct}%;background:${cat.color}"></span></span>
+        <span class="cat-amount">${Model.fmtCurrency(item.total)}</span>`;
+      list.appendChild(row);
+    });
+  }
+
+  function renderTxList() {
+    const list = $("txList");
+    list.innerHTML = "";
+    let items = Model.txForMonth(state, currentMonth);
+    if (txFilter !== "all") items = items.filter((t) => t.type === txFilter);
+    items = items.sort((a, b) => (a.date < b.date ? 1 : -1));
+    if (!items.length) {
+      list.innerHTML = '<div class="empty">אין תנועות להצגה</div>';
+      return;
+    }
+    items.forEach((t) => {
+      const cat = Model.findCategory(state, t.category);
+      const row = document.createElement("div");
+      row.className = "tx-item " + t.type;
+      row.innerHTML = `
+        <span class="cat-icon" style="background:${cat.color}22;color:${cat.color}">${cat.icon}</span>
+        <span class="tx-main">
+          <span class="tx-cat">${cat.name}${t.note ? " · " + escapeHtml(t.note) : ""}</span>
+          <span class="tx-date">${t.date}</span>
+        </span>
+        <span class="tx-amount ${t.type}">${t.type === "income" ? "+" : "−"}${Model.fmtCurrency(t.amount)}</span>
+        <button class="tx-del" aria-label="מחק">🗑️</button>`;
+      row.querySelector(".tx-del").addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (confirm("למחוק תנועה זו?")) {
+          state = Store.deleteTransaction(state, t.id);
+          renderAll();
+          toast("נמחק");
+        }
+      });
+      row.addEventListener("click", () => openTxModal(t));
+      list.appendChild(row);
+    });
+  }
+
+  function renderCharts() {
+    Charts.renderMonthlyBars($("chartMonthly"), Model.monthlySeries(state, currentMonth, 6));
+    Charts.renderCategoryDonut(
+      $("chartCategory"),
+      Model.expensesByCategory(state, currentMonth),
+      state
+    );
+  }
+
+  function renderBudgetTab() {
+    $("monthlyBudget").value =
+      state.budgets.monthlyTotal != null ? state.budgets.monthlyTotal : "";
+    const box = $("categoryBudgets");
+    box.innerHTML = "";
+    state.categories.forEach((cat) => {
+      const val = (state.budgets.perCategory || {})[cat.id] || "";
+      const row = document.createElement("div");
+      row.className = "cat-budget-row";
+      row.innerHTML = `
+        <span class="cat-icon" style="background:${cat.color}22;color:${cat.color}">${cat.icon}</span>
+        <span class="cat-name">${cat.name}</span>
+        <input type="number" inputmode="decimal" data-cat="${cat.id}" value="${val}" placeholder="₪" />`;
+      const input = row.querySelector("input");
+      input.addEventListener("change", () => {
+        state = Store.setCategoryBudget(state, cat.id, input.value);
+        renderBudgetSummary();
+        toast("תקציב עודכן");
+      });
+      box.appendChild(row);
+    });
+  }
+
+  function renderSettingsCategories() {
+    const box = $("settingsCategories");
+    box.innerHTML = "";
+    state.categories.forEach((cat) => {
+      const row = document.createElement("div");
+      row.className = "settings-cat-row";
+      row.innerHTML = `
+        <span class="cat-icon" style="background:${cat.color}22;color:${cat.color}">${cat.icon}</span>
+        <span class="cat-name">${cat.name}</span>
+        <button class="mini-btn edit" aria-label="ערוך">✏️</button>
+        <button class="mini-btn del" aria-label="מחק">🗑️</button>`;
+      row.querySelector(".edit").addEventListener("click", () => openCatModal(cat));
+      row.querySelector(".del").addEventListener("click", () => {
+        if (confirm(`למחוק את הקטגוריה "${cat.name}"? תנועות קיימות יישארו.`)) {
+          state = Store.deleteCategory(state, cat.id);
+          renderAll();
+        }
+      });
+      box.appendChild(row);
+    });
+  }
+
+  function renderDriveStatus() {
+    const el = $("driveStatus");
+    $("clientIdInput").value = Store.getClientId();
+    if (!Drive.isConfigured()) {
+      el.textContent = "לא מוגדר (הזן Client ID)";
+      el.className = "drive-status";
+    } else if (Drive.isSignedIn()) {
+      el.textContent = "מחובר ✓";
+      el.className = "drive-status ok";
+    } else {
+      el.textContent = "מוגדר — לחץ סנכרן להתחברות";
+      el.className = "drive-status";
+    }
+  }
+
+  // ---------- התראות תקציב ----------
+  function checkBudgetAlert() {
+    const st = Model.totalBudgetStatus(state, currentMonth);
+    if (st.budget == null) return;
+    if (st.level === "over") {
+      notify("חריגה מהתקציב!", `הוצאת ${Model.fmtCurrency(st.spent)} מתוך ${Model.fmtCurrency(st.budget)}`);
+    } else if (st.level === "warn") {
+      notify("מתקרב לתקציב", `${Math.round(st.ratio * 100)}% מהתקציב החודשי נוצל`);
+    }
+  }
+
+  function notify(title, body) {
+    toast(title + " · " + body);
+    if ("Notification" in window && Notification.permission === "granted") {
+      try {
+        new Notification(title, { body, icon: "icons/icon-192.png" });
+      } catch (_) {}
+    }
+  }
+
+  // ---------- חלון תנועה ----------
+  function fillCategorySelect() {
+    const sel = $("txCategory");
+    sel.innerHTML = "";
+    state.categories.forEach((c) => {
+      const opt = document.createElement("option");
+      opt.value = c.id;
+      opt.textContent = `${c.icon} ${c.name}`;
+      sel.appendChild(opt);
+    });
+  }
+
+  function setModalType(type) {
+    modalType = type;
+    document.querySelectorAll(".type-btn").forEach((b) =>
+      b.classList.toggle("active", b.dataset.type === type)
+    );
+    $("txCategoryField").style.display = type === "income" ? "none" : "";
+  }
+
+  function openTxModal(tx) {
+    editingTxId = tx ? tx.id : null;
+    $("txModalTitle").textContent = tx ? "עריכת תנועה" : "הוספת תנועה";
+    fillCategorySelect();
+    setModalType(tx ? tx.type : "expense");
+    $("txAmount").value = tx ? tx.amount : "";
+    $("txCategory").value = tx && tx.type === "expense" ? tx.category : state.categories[0].id;
+    $("txDate").value = tx ? tx.date : Model.todayStr();
+    $("txNote").value = tx ? tx.note : "";
+    $("txModal").classList.remove("hidden");
+    $("txAmount").focus();
+  }
+
+  function closeTxModal() {
+    $("txModal").classList.add("hidden");
+    editingTxId = null;
+  }
+
+  function saveTx() {
+    const amount = parseFloat($("txAmount").value);
+    if (!amount || amount <= 0) {
+      toast("הזן סכום תקין");
+      return;
+    }
+    const data = {
+      type: modalType,
+      amount,
+      category: modalType === "income" ? Model.INCOME_CATEGORY.id : $("txCategory").value,
+      date: $("txDate").value || Model.todayStr(),
+      note: $("txNote").value.trim(),
+    };
+    if (editingTxId) {
+      state = Store.updateTransaction(state, editingTxId, data);
+      toast("עודכן");
+    } else {
+      state = Store.addTransaction(state, data);
+      toast("נוסף");
+    }
+    // מעבר לחודש של התנועה שנוספה כדי שתהיה גלויה
+    currentMonth = Model.monthKey(data.date);
+    closeTxModal();
+    renderAll();
+    if (modalType === "expense") checkBudgetAlert();
+  }
+
+  // ---------- חלון קטגוריה ----------
+  function openCatModal(cat) {
+    editingCatId = cat ? cat.id : null;
+    $("catModalTitle").textContent = cat ? "עריכת קטגוריה" : "קטגוריה חדשה";
+    $("catName").value = cat ? cat.name : "";
+    $("catIcon").value = cat ? cat.icon : "📦";
+    $("catColor").value = cat ? cat.color : "#6b7280";
+    $("catModal").classList.remove("hidden");
+  }
+
+  function closeCatModal() {
+    $("catModal").classList.add("hidden");
+    editingCatId = null;
+  }
+
+  function saveCat() {
+    const name = $("catName").value.trim();
+    if (!name) {
+      toast("הזן שם קטגוריה");
+      return;
+    }
+    const data = { name, icon: $("catIcon").value.trim() || "📦", color: $("catColor").value };
+    if (editingCatId) state = Store.updateCategory(state, editingCatId, data);
+    else state = Store.addCategory(state, data);
+    closeCatModal();
+    renderAll();
+    toast("נשמר");
+  }
+
+  // ---------- סנכרון Drive ----------
+  async function doSync() {
+    if (!Drive.isConfigured()) {
+      toast("הזן קודם Google Client ID");
+      return;
+    }
+    try {
+      $("driveStatus").textContent = "מסנכרן...";
+      state = await Drive.sync(state);
+      renderAll();
+      toast("סונכרן עם Drive ✓");
+    } catch (e) {
+      console.error(e);
+      $("driveStatus").textContent = "שגיאה: " + e.message;
+      toast("סנכרון נכשל: " + e.message);
+    }
+  }
+
+  // ---------- ניווט ----------
+  function switchTab(name) {
+    document.querySelectorAll(".tab").forEach((t) => t.classList.add("hidden"));
+    $("tab-" + name).classList.remove("hidden");
+    document.querySelectorAll(".nav-btn").forEach((b) =>
+      b.classList.toggle("active", b.dataset.tab === name)
+    );
+    window.scrollTo(0, 0);
+  }
+
+  // ---------- קישור אירועים ----------
+  function bindEvents() {
+    $("prevMonth").addEventListener("click", () => {
+      currentMonth = Model.shiftMonth(currentMonth, -1);
+      renderAll();
+    });
+    $("nextMonth").addEventListener("click", () => {
+      currentMonth = Model.shiftMonth(currentMonth, 1);
+      renderAll();
+    });
+
+    document.querySelectorAll(".nav-btn").forEach((b) =>
+      b.addEventListener("click", () => switchTab(b.dataset.tab))
+    );
+
+    $("fab").addEventListener("click", () => openTxModal(null));
+    $("txCancel").addEventListener("click", closeTxModal);
+    $("txSave").addEventListener("click", saveTx);
+    document.querySelectorAll(".type-btn").forEach((b) =>
+      b.addEventListener("click", () => setModalType(b.dataset.type))
+    );
+
+    $("catCancel").addEventListener("click", closeCatModal);
+    $("catSave").addEventListener("click", saveCat);
+    $("addCategoryBtn").addEventListener("click", () => openCatModal(null));
+
+    document.querySelectorAll(".tx-filter .chip").forEach((c) =>
+      c.addEventListener("click", () => {
+        txFilter = c.dataset.filter;
+        document.querySelectorAll(".tx-filter .chip").forEach((x) =>
+          x.classList.toggle("active", x === c)
+        );
+        renderTxList();
+      })
+    );
+
+    $("monthlyBudget").addEventListener("change", (e) => {
+      state = Store.setMonthlyBudget(state, e.target.value);
+      renderBudgetSummary();
+      toast("תקציב חודשי עודכן");
+    });
+
+    // הגדרות: Drive
+    $("saveClientIdBtn").addEventListener("click", () => {
+      Store.setClientId($("clientIdInput").value);
+      renderDriveStatus();
+      toast("מזהה נשמר");
+    });
+    $("syncBtn").addEventListener("click", doSync);
+
+    // גיבוי מקומי
+    $("exportBtn").addEventListener("click", exportData);
+    $("importBtn").addEventListener("click", () => $("importFile").click());
+    $("importFile").addEventListener("change", importData);
+
+    // התראות
+    $("notifyBtn").addEventListener("click", () => {
+      if (!("Notification" in window)) return toast("הדפדפן לא תומך בהתראות");
+      Notification.requestPermission().then((p) =>
+        toast(p === "granted" ? "התראות מאושרות ✓" : "התראות לא אושרו")
+      );
+    });
+
+    // סגירת חלונות בלחיצה על הרקע
+    document.querySelectorAll(".modal").forEach((m) =>
+      m.addEventListener("click", (e) => {
+        if (e.target === m) m.classList.add("hidden");
+      })
+    );
+  }
+
+  function exportData() {
+    const blob = new Blob([Store.exportJSON(state)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `budget-backup-${Model.todayStr()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast("קובץ יוצא");
+  }
+
+  function importData(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        state = Store.importJSON(reader.result);
+        renderAll();
+        toast("יובא בהצלחה ✓");
+      } catch (err) {
+        toast("ייבוא נכשל: " + err.message);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+    );
+  }
+
+  // ---------- אתחול ----------
+  function init() {
+    bindEvents();
+    renderAll();
+  }
+
+  if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", init); } else { init(); }
+})();
+
+</script>
