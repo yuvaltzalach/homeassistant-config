@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#4f46e5" />
+  <title>תקציב חודשי</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- כותרת עליונה עם ניווט חודשים -->
+  <header class="topbar">
+    <button id="prevMonth" class="icon-btn" aria-label="חודש קודם">‹</button>
+    <div class="month-title" id="monthTitle">—</div>
+    <button id="nextMonth" class="icon-btn" aria-label="חודש הבא">›</button>
+  </header>
+
+  <main id="main">
+    <!-- טאב: סיכום -->
+    <section class="tab" id="tab-summary">
+      <div class="cards-row">
+        <div class="stat-card income">
+          <div class="stat-label">הכנסות</div>
+          <div class="stat-value" id="sumIncome">₪0</div>
+        </div>
+        <div class="stat-card expense">
+          <div class="stat-label">הוצאות</div>
+          <div class="stat-value" id="sumExpense">₪0</div>
+        </div>
+      </div>
+      <div class="stat-card balance" id="balanceCard">
+        <div class="stat-label">מאזן החודש</div>
+        <div class="stat-value" id="sumBalance">₪0</div>
+        <div class="stat-sub" id="cumBalance"></div>
+      </div>
+
+      <div id="budgetSummary"></div>
+
+      <h2 class="section-title">הוצאות לפי קטגוריה</h2>
+      <div id="categoryList" class="category-list"></div>
+    </section>
+
+    <!-- טאב: תנועות -->
+    <section class="tab hidden" id="tab-tx">
+      <div class="tx-filter">
+        <button class="chip active" data-filter="all">הכל</button>
+        <button class="chip" data-filter="expense">הוצאות</button>
+        <button class="chip" data-filter="income">הכנסות</button>
+      </div>
+      <div id="txList" class="tx-list"></div>
+    </section>
+
+    <!-- טאב: גרפים -->
+    <section class="tab hidden" id="tab-charts">
+      <h2 class="section-title">הכנסות מול הוצאות (6 חודשים)</h2>
+      <div id="chartMonthly" class="chart-box"></div>
+      <h2 class="section-title">פילוח הוצאות החודש</h2>
+      <div id="chartCategory" class="chart-box"></div>
+    </section>
+
+    <!-- טאב: תקציב -->
+    <section class="tab hidden" id="tab-budget">
+      <div class="field">
+        <label for="monthlyBudget">תקציב חודשי כולל (₪)</label>
+        <input type="number" id="monthlyBudget" inputmode="decimal" placeholder="למשל 8000" />
+      </div>
+      <h2 class="section-title">תקציב לפי קטגוריה</h2>
+      <div id="categoryBudgets" class="cat-budget-list"></div>
+    </section>
+
+    <!-- טאב: הגדרות -->
+    <section class="tab hidden" id="tab-settings">
+      <h2 class="section-title">קטגוריות</h2>
+      <div id="settingsCategories" class="settings-cats"></div>
+      <button class="btn-secondary" id="addCategoryBtn">➕ הוסף קטגוריה</button>
+
+      <h2 class="section-title">סנכרון Google Drive</h2>
+      <div class="drive-box">
+        <div class="field">
+          <label for="clientIdInput">Google OAuth Client ID</label>
+          <input type="text" id="clientIdInput" placeholder="xxxxx.apps.googleusercontent.com" />
+        </div>
+        <div class="drive-actions">
+          <button class="btn-secondary" id="saveClientIdBtn">שמור מזהה</button>
+          <button class="btn-primary" id="syncBtn">🔄 סנכרן עכשיו</button>
+        </div>
+        <div class="drive-status" id="driveStatus">לא מחובר</div>
+        <p class="hint">הסנכרון אופציונלי. ראה הוראות הקמה ב-README.</p>
+      </div>
+
+      <h2 class="section-title">גיבוי מקומי</h2>
+      <div class="drive-actions">
+        <button class="btn-secondary" id="exportBtn">⬇️ ייצוא קובץ</button>
+        <button class="btn-secondary" id="importBtn">⬆️ ייבוא קובץ</button>
+        <input type="file" id="importFile" accept="application/json" hidden />
+      </div>
+
+      <h2 class="section-title">התראות</h2>
+      <button class="btn-secondary" id="notifyBtn">🔔 אפשר התראות דפדפן</button>
+    </section>
+  </main>
+
+  <!-- כפתור הוספה צף -->
+  <button class="fab" id="fab" aria-label="הוסף תנועה">+</button>
+
+  <!-- ניווט תחתון -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-tab="summary"><span>📊</span>סיכום</button>
+    <button class="nav-btn" data-tab="tx"><span>📝</span>תנועות</button>
+    <button class="nav-btn" data-tab="charts"><span>📈</span>גרפים</button>
+    <button class="nav-btn" data-tab="budget"><span>🎯</span>תקציב</button>
+    <button class="nav-btn" data-tab="settings"><span>⚙️</span>הגדרות</button>
+  </nav>
+
+  <!-- חלון הוספת/עריכת תנועה -->
+  <div class="modal hidden" id="txModal">
+    <div class="modal-card">
+      <h2 id="txModalTitle">הוספת תנועה</h2>
+      <div class="type-toggle">
+        <button type="button" class="type-btn active" data-type="expense">הוצאה</button>
+        <button type="button" class="type-btn" data-type="income">הכנסה</button>
+      </div>
+      <div class="field">
+        <label for="txAmount">סכום (₪)</label>
+        <input type="number" id="txAmount" inputmode="decimal" placeholder="0" />
+      </div>
+      <div class="field" id="txCategoryField">
+        <label for="txCategory">קטגוריה</label>
+        <select id="txCategory"></select>
+      </div>
+      <div class="field">
+        <label for="txDate">תאריך</label>
+        <input type="date" id="txDate" />
+      </div>
+      <div class="field">
+        <label for="txNote">הערה (אופציונלי)</label>
+        <input type="text" id="txNote" placeholder="תיאור" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="txCancel">ביטול</button>
+        <button class="btn-primary" id="txSave">שמירה</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- חלון קטגוריה -->
+  <div class="modal hidden" id="catModal">
+    <div class="modal-card">
+      <h2 id="catModalTitle">קטגוריה</h2>
+      <div class="field">
+        <label for="catName">שם</label>
+        <input type="text" id="catName" placeholder="שם הקטגוריה" />
+      </div>
+      <div class="field">
+        <label for="catIcon">אייקון (אימוג'י)</label>
+        <input type="text" id="catIcon" maxlength="2" placeholder="📦" />
+      </div>
+      <div class="field">
+        <label for="catColor">צבע</label>
+        <input type="color" id="catColor" value="#6b7280" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="catCancel">ביטול</button>
+        <button class="btn-primary" id="catSave">שמירה</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- הודעת טוסט -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="js/model.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/drive.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
